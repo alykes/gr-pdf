@@ -3,8 +3,8 @@ import os
 from urllib.request import urlretrieve
 import urllib.error
 
-def download_pdf(url, file_name):
 
+def download_pdf(url, file_name):
     try:
         conn = urllib.request.urlopen(url)
     except urllib.error.HTTPError as err:
@@ -18,6 +18,7 @@ def download_pdf(url, file_name):
         print("[INFO] Downloading --" + file_name + "--")
         urlretrieve(url, "pdfs/" + file_name)
         print("[INFO] Download of --" + file_name + "-- COMPLETE!")
+
 
 if __name__ == '__main__':
 
@@ -45,7 +46,9 @@ if __name__ == '__main__':
     print("URL:", url)
 
     if os.path.isfile('pdfs/' + file_name):
-        print("[INFO]", file_name, "EXISTS on the local file system.\n[INFO] Download not required.")
+        print("[INFO]", file_name, "EXISTS on the local file system.")
+        print("[INFO] Download not required.")
     else:
-        print("[INFO] File is NOT present on the local file system.\n[INFO] Starting download.")
+        print("[INFO] File is NOT present on the local file system.")
+        print("[INFO] Starting download.")
         download_pdf(url, file_name)
