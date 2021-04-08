@@ -16,12 +16,65 @@ def find_page(pdf2read):
                 return (index)
         return (-1)
 
-def split_items():
-    return (1)
+def create_list(elements):
+    #enumerating the list to find the first float after a string
+    float_positions = []
+    for idx, items in enumerate(elements):
+         try :
+             if float(elements[idx]):
+                float_positions.append(idx)
+         except ValueError:
+             continue
+    #print(float_positions)
+
+    LoL = []
+    L1 = []
+    L2 = []
+    #Sorting through the first half of the list
+    if float_positions != []:
+        if float_positions[0] == 1:
+            regional_unit = ''.join(elements[float_positions[0] - 1])
+
+        elif float_positions[0] == 2:
+            regional_unit = elements[float_positions[0] - 2] + ' ' + elements[float_positions[0] - 1]
+
+        elif float_positions[0] == 3:
+            regional_unit = elements[float_positions[0] - 3] + ' ' + elements[float_positions[0] - 2] + ' ' + elements[float_positions[0] - 1]
+
+        L1.insert(0, regional_unit)
+        L1.insert(1, elements[float_positions[0]])
+        L1.insert(2, elements[float_positions[0] + 1])
+        L1.insert(3, elements[float_positions[0] + 2])
+
+        #Sort through the second half of the list
+        diff = float_positions[1] - float_positions[0]
+        if diff == 4:
+            regional_unit = ''.join(elements[float_positions[1] - 1])
+
+        elif diff == 5:
+            regional_unit = elements[float_positions[1] - 2] + ' ' + elements[float_positions[1] - 1]
+
+        elif diff == 6:
+            regional_unit = elements[float_positions[1] - 3] + ' ' + elements[float_positions[1] - 2] + ' ' + elements[float_positions[1] - 1]
+
+        L2.insert(0, regional_unit)
+        L2.insert(1, elements[float_positions[1]])
+        L2.insert(2, elements[float_positions[1] + 1])
+        L2.insert(3, elements[float_positions[1] + 2])
+
+
+        LoL = [L1 , L2]
+        print(LoL)
+
+    if float_positions == []:
+         return (LoL)
+    else:
+         return(LoL)
 
 
 if __name__ == '__main__':
 
+    new_list = []
     with pdfplumber.open('pdfs/covid-gr-daily-report-20210405.pdf') as pdf:
 
         page_num = find_page(pdf)
@@ -38,30 +91,15 @@ if __name__ == '__main__':
         regex = re.compile(r'^([Α-ΩΪ]+) (\d+|[Α-Ω]+) (\d+.?\d+|[Α-Ω]+) (\d+.?\d+) (\d+.?\d+|) ?(\d+.?\d+|) ?')
 
         for line in re.split('\n', text):
-            print("TEXT--------------:", line)
+            #print("TEXT--------------:", line)
             if regex.match(line):
-                print("Line match:", line)
+                #print("Line match:", line)
 
-                replaced_line = line.replace(",", ".")
+                #replaced_line = line.replace(",", ".")
 
 
-                print ("THIS IS THE LENGTH OF LINE: ", len(line))
-                print ("THIS IS THE LENGTH OF REPLACED_LINE: ", len(replaced_line))
-
-                print (regex.match(replaced_line).group(2))
-
-                try :
-                    print (float(regex.match(replaced_line).group(2)))
-                except ValueError:
-                    print ("NOT A FLOAT")
-                # if isinstance(regex.match(line).group(2), int):
-                #     print("INT")
-                # if isinstance(regex.match(line).group(2), str):
-                #     print("STR")
-                # if isinstance(regex.match(line).group(2), float):
-                #     print("FLOAT")
-
-                #print("str:", str)
+                #print ("THIS IS THE LENGTH OF LINE: ", len(line))
+                #print ("THIS IS THE LENGTH OF REPLACED_LINE: ", len(replaced_line))
 
                 cases = line.split(' ')[1]
                 avg = line.split(' ')[2]
@@ -71,11 +109,17 @@ if __name__ == '__main__':
                 #print("Cases/100,000 ppl: ", hungyk)
 
                 #Splitting up each line and placing it in an array
-                result = re.split(r'^([Α-ΩΪ]+) (\d+|[Α-Ω]+) (\d+.?\d+|[Α-Ω]+) (\d+.?\d+) (\d+.?\d+|) ?(\d+.?\d+|) ?', replaced_line)
+                #result = re.split(r'^([Α-ΩΪ]+) (\d+|[Α-Ω]+) (\d+,?\d+|[Α-Ω]+) (\d+,?\d+) (\d+,?\d+|) ?(\d+,?\d+|) ?([Α-ΩΪ]+) (\d+|[Α-Ω]+) (\d+,?\d+|[Α-Ω]+) (\d+,?\d+|) ?(\d+,\d+|) ?(\d+,\d+|)', line)
+                result = re.split(r'(^\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) (\d+,?\d+|) ?(\d+,?\d+|) ?(\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) ?(\d+,\d+|) ?(\d+,\d+|)', line)
+                #print ("THIS IS THE LENGTH OF RESULT: ", len(result))
 
-                print ("THIS IS THE LENGTH OF RESULT: ", len(result))
+                clean_list = [elmnt for elmnt in result if elmnt != ""]
 
-                print("Array:", result)
+                new_list.append(create_list(clean_list))
+
             else:
-                print("[INFO] This line isn't a match!")
+                print("[WARN] The following line is not a match!")
+                print(line)
     pdf.close()
+
+    print(new_list)

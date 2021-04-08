@@ -8,7 +8,7 @@ def download_pdf(url, file_name):
     try:
         conn = urllib.request.urlopen(url)
     except urllib.error.HTTPError as err:
-    # Return code error (e.g. 404, 501, ...)
+    # Return code error (e.g. 404, 501, etc)
         print('[ERROR] HTTPError: {}'.format(err.code))
     except urllib.error.URLError as err:
     # Not an HTTP-specific error (e.g. connection refused)
@@ -36,11 +36,7 @@ if __name__ == '__main__':
         day = str(now.day)
 
     YMD = year + month + day
-    #print("\nYMD:", YMD) #TEST
-
     file_name = "covid-gr-daily-report-" + YMD + ".pdf"
-    #print("file_name:", file_name) #TEST
-
     url = "https://eody.gov.gr/wp-content/uploads/" + year + "/" + month + "/" + file_name
 
     print("URL:", url)
