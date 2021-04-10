@@ -3,12 +3,12 @@ import os
 from urllib.request import urlretrieve
 import urllib.error
 
-
 def download_pdf(url, file_name):
+
     try:
         conn = urllib.request.urlopen(url)
     except urllib.error.HTTPError as err:
-    # Return code error (e.g. 404, 501, etc)
+    # Return code error (e.g. 404, 501, ...)
         print('[ERROR] HTTPError: {}'.format(err.code))
     except urllib.error.URLError as err:
     # Not an HTTP-specific error (e.g. connection refused)
@@ -36,15 +36,16 @@ if __name__ == '__main__':
         day = str(now.day)
 
     YMD = year + month + day
+    #print("\nYMD:", YMD) #TEST
+
     file_name = "covid-gr-daily-report-" + YMD + ".pdf"
+    #print("file_name:", file_name) #TEST
     url = "https://eody.gov.gr/wp-content/uploads/" + year + "/" + month + "/" + file_name
 
     print("URL:", url)
 
     if os.path.isfile('pdfs/' + file_name):
-        print("[INFO]", file_name, "EXISTS on the local file system.")
-        print("[INFO] Download not required.")
+        print("[INFO]", file_name, "EXISTS on the local file system.\n[INFO] Download not required.")
     else:
-        print("[INFO] File is NOT present on the local file system.")
-        print("[INFO] Starting download.")
+        print("[INFO] File is NOT present on the local file system.\n[INFO] Starting download.")
         download_pdf(url, file_name)

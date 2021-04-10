@@ -103,4 +103,12 @@ if __name__ == '__main__':
     pdf.close()
 
     final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "cases / 100,000 ppl"])
+
     print(final_list)
+
+    #Returns a list based on a regional search string
+    search_item = "ΖΑΚΥΝΘΟΥ"
+    for sublist in final_list:
+        if sublist[0] == search_item:
+            print("\n", sublist)
+            break
