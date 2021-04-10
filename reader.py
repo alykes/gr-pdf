@@ -25,12 +25,10 @@ def create_list(elements):
                 float_positions.append(idx)
          except ValueError:
              continue
-    #print(float_positions)
 
-    LoL = []
+    #Sorting through the first half of the line and creating a list
     L1 = []
     L2 = []
-    #Sorting through the first half of the list
     if float_positions != []:
         if float_positions[0] == 1:
             regional_unit = ''.join(elements[float_positions[0] - 1])
@@ -46,7 +44,7 @@ def create_list(elements):
         L1.insert(2, elements[float_positions[0] + 1])
         L1.insert(3, elements[float_positions[0] + 2])
 
-        #Sort through the second half of the list
+        #Sorting through the second half of the line and creating a list
         diff = float_positions[1] - float_positions[0]
         if diff == 4:
             regional_unit = ''.join(elements[float_positions[1] - 1])
@@ -62,19 +60,17 @@ def create_list(elements):
         L2.insert(2, elements[float_positions[1] + 1])
         L2.insert(3, elements[float_positions[1] + 2])
 
-
-        LoL = [L1 , L2]
-        print(LoL)
+        #Add each list to the List of Lists
+        final_list.insert(0, L1)
+        final_list.insert(0, L2)
 
     if float_positions == []:
-         return (LoL)
-    else:
-         return(LoL)
+         return ()
 
 
 if __name__ == '__main__':
 
-    new_list = []
+    final_list = []
     with pdfplumber.open('pdfs/covid-gr-daily-report-20210405.pdf') as pdf:
 
         page_num = find_page(pdf)
@@ -91,35 +87,20 @@ if __name__ == '__main__':
         regex = re.compile(r'^([Α-ΩΪ]+) (\d+|[Α-Ω]+) (\d+.?\d+|[Α-Ω]+) (\d+.?\d+) (\d+.?\d+|) ?(\d+.?\d+|) ?')
 
         for line in re.split('\n', text):
-            #print("TEXT--------------:", line)
+
             if regex.match(line):
-                #print("Line match:", line)
-
                 #replaced_line = line.replace(",", ".")
-
-
-                #print ("THIS IS THE LENGTH OF LINE: ", len(line))
-                #print ("THIS IS THE LENGTH OF REPLACED_LINE: ", len(replaced_line))
-
-                cases = line.split(' ')[1]
-                avg = line.split(' ')[2]
-                hungyk = line.split(' ')[3]
-                #print("Coronavirus Cases: ", cases)
-                #print("7 Day Case Average:", avg)
-                #print("Cases/100,000 ppl: ", hungyk)
-
                 #Splitting up each line and placing it in an array
-                #result = re.split(r'^([Α-ΩΪ]+) (\d+|[Α-Ω]+) (\d+,?\d+|[Α-Ω]+) (\d+,?\d+) (\d+,?\d+|) ?(\d+,?\d+|) ?([Α-ΩΪ]+) (\d+|[Α-Ω]+) (\d+,?\d+|[Α-Ω]+) (\d+,?\d+|) ?(\d+,\d+|) ?(\d+,\d+|)', line)
                 result = re.split(r'(^\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) (\d+,?\d+|) ?(\d+,?\d+|) ?(\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) ?(\d+,\d+|) ?(\d+,\d+|)', line)
-                #print ("THIS IS THE LENGTH OF RESULT: ", len(result))
 
+                #Remove all empty elements from the list
                 clean_list = [elmnt for elmnt in result if elmnt != ""]
-
-                new_list.append(create_list(clean_list))
+                create_list(clean_list)
 
             else:
                 print("[WARN] The following line is not a match!")
                 print(line)
     pdf.close()
 
-    print(new_list)
+    final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "cases / 100,000 ppl"])
+    print(final_list)
