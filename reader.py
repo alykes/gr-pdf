@@ -73,7 +73,7 @@ def create_list(elements):
 if __name__ == '__main__':
 
     final_list = []
-    with pdfplumber.open('pdfs/covid-gr-daily-report-20201222.pdf') as pdf:
+    with pdfplumber.open('pdfs/covid-gr-daily-report-20210405.pdf') as pdf:#20201222.pdf') as pdf:
 
         page_num = find_page(pdf)
         if page_num < 0:
@@ -86,6 +86,7 @@ if __name__ == '__main__':
         page = pdf.pages[page_num]
         text = page.extract_text()
 
+        print(text)
         # #Testing with numpy arrays#
         # table = page.extract_table()
         # print(table)
@@ -97,7 +98,8 @@ if __name__ == '__main__':
         # print("----------------------------------------------------------------------------------------")
         # ###########################
 
-        regex = re.compile(r'^([Α-ΩΪ]+) (\d+|[Α-Ω]+) (\d+.?\d+|[Α-Ω]+) (\d+.?\d+) ?(\d+.?\d+|) ?(\d+.?\d+|) ?')
+        #regex = re.compile(r'^([Α-ΩΪ]+) (\d+|[-]?[Α-Ω]+) (\d+.?\d+|[Α-Ω]+) (\d+.?\d+) ?(\d+.?\d+|) ?(\d+.?\d+|) ?')
+        regex = re.compile(r'^(\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) (\d+,?\d+) (\d+,\d+|) ?(\d+,\d+|) ?')
 
         for line in re.split('\n', text):
 
@@ -108,7 +110,8 @@ if __name__ == '__main__':
                 if (len(line.split()) >= 4) and (len(line.split()) <= 6):
                     result = re.split(r'(^\w+) (\d+|\w+) (\d+,?\d+|\w+) ?(\d+,?\d+) ?(\d+,?\d+|) ?(\d+,?\d+|)', line)
                 else:
-                    result = re.split(r'(^\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) (\d+,?\d+|) ?(\d+,?\d+|) ?(\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) ?(\d+,\d+|) ?(\d+,\d+|)', line)
+                    result = re.split(r'^(\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) (\d+,?\d+) (\d+,\d+|) ?(\d+,\d+|) ?(\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) (\d+,?\d+) ?(\d+,\d+|) ?(\d+,\d+|) ?',line)
+                    #result = re.split(r'(^\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) (\d+,?\d+|) ?(\d+,?\d+|) ?(\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) ?(\d+,\d+|) ?(\d+,\d+|)', line)
 
                 #Remove all empty elements from the list
                 clean_list = [elmnt for elmnt in result if elmnt != ""]
@@ -121,8 +124,8 @@ if __name__ == '__main__':
     final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "Cases/100,000 ppl"])
 
     np_array = np.array(final_list)
-    print("==========================================================================\n", np_array)#final_list)
-    print("==========================================================================")
+    print("===============================================================================\n", np_array)#final_list)
+    print("=============================== Number of Lists:", len(final_list), "===============================")
 
     #Returns a list based on a regional search string
     search_item = "ΖΑΚΥΝΘΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
