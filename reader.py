@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import numpy as np
 import pdfplumber
 import re
@@ -69,15 +70,33 @@ def create_list(elements):
     if float_positions == []:
          return ()
 
+def ymd():
+    now = datetime.now() + timedelta(days=-1)
+    year = str(now.year)
+
+    if now.month < 10:
+        month = "0" + str(now.month)
+    else:
+        month = str(now.month)
+
+    if now.day < 10:
+        day = "0" + str(now.day)
+    else:
+        day = str(now.day)
+
+    YMD = year + month + day
+
+    return(YMD)
 
 if __name__ == '__main__':
 
-    final_list = []
-    with pdfplumber.open('pdfs/covid-gr-daily-report-20210405.pdf') as pdf:#20201222.pdf') as pdf:
+    YMD = ymd()
 
+    final_list = []
+    with pdfplumber.open('pdfs/covid-gr-daily-report-' + YMD + '.pdf') as pdf:
         page_num = find_page(pdf)
         if page_num < 0:
-            print("[WARN] Table not found in current pdf dcoument!")
+            print("[WARN] Table not found in current pdf document!")
             pdf.close()
             exit()
         else:
@@ -86,7 +105,9 @@ if __name__ == '__main__':
         page = pdf.pages[page_num]
         text = page.extract_text()
 
+        print(":::::::::::::::::::::::::::::::::::::::::::::::: Extracted Text :::::::::::::::::::::::::::::::::::::::::::::::::")
         print(text)
+        print(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
         # #Testing with numpy arrays#
         # table = page.extract_table()
         # print(table)
@@ -98,11 +119,9 @@ if __name__ == '__main__':
         # print("----------------------------------------------------------------------------------------")
         # ###########################
 
-        #regex = re.compile(r'^([Α-ΩΪ]+) (\d+|[-]?[Α-Ω]+) (\d+.?\d+|[Α-Ω]+) (\d+.?\d+) ?(\d+.?\d+|) ?(\d+.?\d+|) ?')
-        regex = re.compile(r'^(\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) (\d+,?\d+) (\d+,\d+|) ?(\d+,\d+|) ?')
+        regex = re.compile(r'(^\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) ?(\d+,?\d+) ?(\d+,?\d+|) ?(\d+,\d+|)')
 
         for line in re.split('\n', text):
-
             if regex.match(line):
                 #replaced_line = line.replace(",", ".")
 
@@ -111,7 +130,6 @@ if __name__ == '__main__':
                     result = re.split(r'(^\w+) (\d+|\w+) (\d+,?\d+|\w+) ?(\d+,?\d+) ?(\d+,?\d+|) ?(\d+,?\d+|)', line)
                 else:
                     result = re.split(r'^(\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) (\d+,?\d+) (\d+,\d+|) ?(\d+,\d+|) ?(\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) (\d+,?\d+) ?(\d+,\d+|) ?(\d+,\d+|) ?',line)
-                    #result = re.split(r'(^\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) (\d+,?\d+|) ?(\d+,?\d+|) ?(\w+) (\d+|\w+) (\d+,?\d+|\w+) (\d+,?\d+) ?(\d+,\d+|) ?(\d+,\d+|)', line)
 
                 #Remove all empty elements from the list
                 clean_list = [elmnt for elmnt in result if elmnt != ""]
@@ -124,13 +142,13 @@ if __name__ == '__main__':
     final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "Cases/100,000 ppl"])
 
     np_array = np.array(final_list)
-    print("===============================================================================\n", np_array)#final_list)
+    print("===================================================================================\n", np_array)#final_list)
     print("=============================== Number of Lists:", len(final_list), "===============================")
 
     #Returns a list based on a regional search string
-    search_item = "ΖΑΚΥΝΘΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
+    search_item = "ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
     for sublist in final_list:
         if sublist[0] == search_item:
-            print(final_list[0][0], '\t', final_list[0][1], '\t', final_list[0][2], '\t', final_list[0][3])
-            print(sublist[0], '\t', sublist[1], '\t', sublist[2], '\t\t', sublist[3])
+            print('{0:25} {1:8} {2:15} {3:15}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3]))
+            print('{0:25} {1:8} {2:15} {3:15}'.format(sublist[0], sublist[1], sublist[2], sublist[3]))
             break
