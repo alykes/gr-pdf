@@ -129,4 +129,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+# Downloaded pdf directory
 /pdfs
+
+# sqlite3 database
+gr-covid.db
