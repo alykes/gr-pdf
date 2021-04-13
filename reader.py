@@ -94,12 +94,19 @@ def sql_connection():
         con = sqlite3.connect('gr-covid.db')
         return con
     except Error:
-        print(Error)
+        print('[ERROR] SQLite3 Connection Error: {}'.format(Error))
 
 def sql_table(con):
     cursorObj = con.cursor()
-    cursorObj.execute("CREATE TABLE if not exists summary(id integer PRIMARY KEY, region text, cases integer, avg7day real, per100k real, dt datetime)")
-    con.commit()
+    try:
+        cursorObj.execute("CREATE TABLE if not exists summary(id integer PRIMARY KEY, region text, cases integer, avg7day real, per100k real, dt datetime)")
+        con.commit()
+        print('[INFO] sqlite3: \'summary\' table exists or has been created.')
+    except Error:
+        print('[ERROR] SQLite3 Execution Error: {}'.format(Error))
+        print('[INFO] Please check the sqlite3 Database file.')
+        print('[INFO] Exiting the application.')
+        exit()
 
 
 if __name__ == '__main__':
