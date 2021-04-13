@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 import numpy as np
 import pdfplumber
 import re
+from sqlite3 import Error
+import sqlite3
 
 def find_page(pdf2read):
 
@@ -46,6 +48,7 @@ def create_list(elements):
         L1.insert(1, elements[float_positions[0]])
         L1.insert(2, elements[float_positions[0] + 1])
         L1.insert(3, elements[float_positions[0] + 2])
+        L1.insert(4, ymd())
 
         #Sorting through the second half of the line and creating a list
         if len(float_positions) == 2:
@@ -61,10 +64,9 @@ def create_list(elements):
             L2.insert(1, elements[float_positions[1]])
             L2.insert(2, elements[float_positions[1] + 1])
             L2.insert(3, elements[float_positions[1] + 2])
-
+            L2.insert(4, ymd())
         #Add each list to the List of Lists
             final_list.insert(0, L2)
-
         final_list.insert(0, L1)
 
     if float_positions == []:
@@ -78,21 +80,36 @@ def ymd():
         month = "0" + str(now.month)
     else:
         month = str(now.month)
-
     if now.day < 10:
         day = "0" + str(now.day)
     else:
         day = str(now.day)
 
     YMD = year + month + day
-
     return(YMD)
+
+def sql_connection():
+
+    try:
+        con = sqlite3.connect('gr-covid.db')
+        return con
+    except Error:
+        print(Error)
+
+def sql_table(con):
+    cursorObj = con.cursor()
+    cursorObj.execute("CREATE TABLE if not exists summary(id integer PRIMARY KEY, region text, cases integer, avg7day real, per100k real, dt datetime)")
+    con.commit()
+
 
 if __name__ == '__main__':
 
     YMD = ymd()
-
     final_list = []
+
+    con = sql_connection()
+    sql_table(con)
+
     with pdfplumber.open('pdfs/covid-gr-daily-report-' + YMD + '.pdf') as pdf:
         page_num = find_page(pdf)
         if page_num < 0:
@@ -139,16 +156,16 @@ if __name__ == '__main__':
                 print(line)
     pdf.close()
 
-    final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "Cases/100,000 ppl"])
+    final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "Cases/100,000 ppl", "Date"])
 
     np_array = np.array(final_list)
-    print("===================================================================================\n", np_array)#final_list)
-    print("=============================== Number of Lists:", len(final_list), "===============================")
+    print("=====================================================================================\n", np_array)#final_list)
+    print("=============================== Number of Regions:", len(final_list), "===============================")
 
     #Returns a list based on a regional search string
     search_item = "ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
     for sublist in final_list:
         if sublist[0] == search_item:
-            print('{0:25} {1:8} {2:15} {3:15}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3]))
-            print('{0:25} {1:8} {2:15} {3:15}'.format(sublist[0], sublist[1], sublist[2], sublist[3]))
+            print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3], final_list[0][4]))
+            print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(sublist[0], sublist[1], sublist[2], sublist[3], sublist[4]))
             break
