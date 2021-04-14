@@ -51,19 +51,19 @@ def create_list(elements):
         L1.insert(4, ymd("dt"))
 
         #Sorting through the second half of the line and creating a list
-        if len(float_positions) == 2:
-            diff = float_positions[1] - float_positions[0]
+        if len(float_positions) == 6:
+            diff = float_positions[3] - float_positions[0]
             if diff == 4:
-                regional_unit = ''.join(elements[float_positions[1] - 1])
+                regional_unit = ''.join(elements[float_positions[3] - 1])
             elif diff == 5:
-                regional_unit = elements[float_positions[1] - 2] + ' ' + elements[float_positions[1] - 1]
+                regional_unit = elements[float_positions[3] - 2] + ' ' + elements[float_positions[3] - 1]
             elif diff == 6:
-                regional_unit = elements[float_positions[1] - 3] + ' ' + elements[float_positions[1] - 2] + ' ' + elements[float_positions[1] - 1]
+                regional_unit = elements[float_positions[3] - 3] + ' ' + elements[float_positions[3] - 2] + ' ' + elements[float_positions[3] - 1]
 
             L2.insert(0, regional_unit)
-            L2.insert(1, elements[float_positions[1]])
-            L2.insert(2, elements[float_positions[1] + 1])
-            L2.insert(3, elements[float_positions[1] + 2])
+            L2.insert(1, elements[float_positions[3]])
+            L2.insert(2, elements[float_positions[3] + 1])
+            L2.insert(3, elements[float_positions[3] + 2])
             L2.insert(4, ymd("dt"))
         #Add each list to the List of Lists
             final_list.insert(0, L2)
@@ -84,8 +84,6 @@ def ymd(format_ymd):
         day = "0" + str(now.day)
     else:
         day = str(now.day)
-
-    YMD_dt = year + "-" + month + "-" + day + " 00:00:00"
 
     if format_ymd == "filename":
         YMD = year + month + day
@@ -161,13 +159,12 @@ if __name__ == '__main__':
         for line in re.split('\n', text):
             if regex.match(line):
                 replaced_line = line.replace(",", ".")
-                print(replaced_line)
 
                 #Splitting up each line and placing it in an array
                 if (len(line.split()) >= 4) and (len(line.split()) <= 6):
-                    result = re.split(r'(^\w+) (\d+|\w+) (\d+,?\d+|\w+) ?(\d+,?\d+) ?(\d+,?\d+|) ?(\d+,?\d+|)', line)
+                    result = re.split(r'(^\w+) (\d+|\w+) (\d+\.?\d+|\w+) ?(\d+\.?\d+) ?(\d+\.?\d+|) ?(\d+\.?\d+|)', replaced_line)
                 else:
-                    result = re.split(r'^(\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) (\d+,?\d+) (\d+,\d+|) ?(\d+,\d+|) ?(\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) (\d+,?\d+) ?(\d+,\d+|) ?(\d+,\d+|) ?',line)
+                    result = re.split(r'^(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) (\d+\.\d+|) ?(\d+\.\d+|) ?(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) ?(\d+\.\d+|) ?(\d+\.\d+|) ?',replaced_line)
 
                 #Remove all empty elements from the list
                 clean_list = [elmnt for elmnt in result if elmnt != ""]
@@ -185,7 +182,7 @@ if __name__ == '__main__':
 
     sql_insert(con)
     #Returns a list based on a regional search string
-    search_item = "ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
+    search_item = "ΖΑΚΥΝΘΟΥ"#"ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
     for sublist in final_list:
         if sublist[0] == search_item:
             #print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3], final_list[0][4]))
