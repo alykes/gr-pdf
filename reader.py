@@ -48,7 +48,7 @@ def create_list(elements):
         L1.insert(1, elements[float_positions[0]])
         L1.insert(2, elements[float_positions[0] + 1])
         L1.insert(3, elements[float_positions[0] + 2])
-        L1.insert(4, ymd())
+        L1.insert(4, ymd("dt"))
 
         #Sorting through the second half of the line and creating a list
         if len(float_positions) == 2:
@@ -64,7 +64,7 @@ def create_list(elements):
             L2.insert(1, elements[float_positions[1]])
             L2.insert(2, elements[float_positions[1] + 1])
             L2.insert(3, elements[float_positions[1] + 2])
-            L2.insert(4, ymd())
+            L2.insert(4, ymd("dt"))
         #Add each list to the List of Lists
             final_list.insert(0, L2)
         final_list.insert(0, L1)
@@ -72,7 +72,7 @@ def create_list(elements):
     if float_positions == []:
          return ()
 
-def ymd():
+def ymd(format_ymd):
     now = datetime.now() + timedelta(days=-1)
     year = str(now.year)
 
@@ -85,8 +85,14 @@ def ymd():
     else:
         day = str(now.day)
 
-    YMD = year + month + day
-    return(YMD)
+    YMD_dt = year + "-" + month + "-" + day + " 00:00:00"
+
+    if format_ymd == "filename":
+        YMD = year + month + day
+        return(YMD)
+    elif format_ymd == "dt":
+        YMD_dt = year + "-" + month + "-" + day
+        return(YMD_dt)
 
 def sql_connection():
 
@@ -99,19 +105,26 @@ def sql_connection():
 def sql_table(con):
     cursorObj = con.cursor()
     try:
-        cursorObj.execute("CREATE TABLE if not exists summary(id integer PRIMARY KEY, region text, cases integer, avg7day real, per100k real, dt datetime)")
+        cursorObj.execute("CREATE TABLE if not exists summary(id integer PRIMARY KEY autoincrement, region text, cases integer, avg7day real, per100k real, dt date)")
         con.commit()
-        print('[INFO] sqlite3: \'summary\' table exists or has been created.')
+        print('[INFO] sqlite3: Table \'summary\' has been created or already exists.')
     except Error:
         print('[ERROR] SQLite3 Execution Error: {}'.format(Error))
         print('[INFO] Please check the sqlite3 Database file.')
         print('[INFO] Exiting the application.')
         exit()
 
+def sql_insert(con):
+    try:
+        cursorObj = con.cursor()
+        cursorObj.executemany("INSERT INTO summary VALUES(null, ?, ?, ?, ?, ?)", final_list)
+        con.commit()
+    except Error:
+        print('[ERROR] SQLite3 Insert Records Error: {}'.format(Error))
 
 if __name__ == '__main__':
 
-    YMD = ymd()
+    YMD = ymd("filename")
     final_list = []
 
     con = sql_connection()
@@ -147,7 +160,8 @@ if __name__ == '__main__':
 
         for line in re.split('\n', text):
             if regex.match(line):
-                #replaced_line = line.replace(",", ".")
+                replaced_line = line.replace(",", ".")
+                print(replaced_line)
 
                 #Splitting up each line and placing it in an array
                 if (len(line.split()) >= 4) and (len(line.split()) <= 6):
@@ -163,16 +177,17 @@ if __name__ == '__main__':
                 print(line)
     pdf.close()
 
-    final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "Cases/100,000 ppl", "Date"])
+    #final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "Cases/100,000 ppl", "Date"])
 
     np_array = np.array(final_list)
     print("=====================================================================================\n", np_array)#final_list)
     print("=============================== Number of Regions:", len(final_list), "===============================")
 
+    sql_insert(con)
     #Returns a list based on a regional search string
     search_item = "ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
     for sublist in final_list:
         if sublist[0] == search_item:
-            print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3], final_list[0][4]))
+            #print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3], final_list[0][4]))
             print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(sublist[0], sublist[1], sublist[2], sublist[3], sublist[4]))
             break
