@@ -3,6 +3,7 @@ import os
 from urllib.request import urlretrieve
 import urllib.error
 
+
 def download_pdf(url, file_name):
 
     try:
@@ -22,30 +23,31 @@ def download_pdf(url, file_name):
 
 if __name__ == '__main__':
 
-    now = datetime.now() + timedelta(days=-1)
-    year = str(now.year)
+    history = 31
 
-    if now.month < 10:
-        month = "0" + str(now.month)
-    else:
-        month = str(now.month)
+    for x in range(1, history):
+        now = datetime.now() + timedelta(days = -(x))
+        year = str(now.year)
 
-    if now.day < 10:
-        day = "0" + str(now.day)
-    else:
-        day = str(now.day)
+        if now.month < 10:
+            month = "0" + str(now.month)
+        else:
+            month = str(now.month)
+        if now.day < 10:
+            day = "0" + str(now.day)
+        else:
+            day = str(now.day)
 
-    YMD = year + month + day
-    #print("\nYMD:", YMD) #TEST
+        YMD = year + month + day
 
-    file_name = "covid-gr-daily-report-" + YMD + ".pdf"
-    #print("file_name:", file_name) #TEST
-    url = "https://eody.gov.gr/wp-content/uploads/" + year + "/" + month + "/" + file_name
+        file_name = "covid-gr-daily-report-" + YMD + ".pdf"
+        print(file_name)
+        url = "https://eody.gov.gr/wp-content/uploads/" + year + "/" + month + "/" + file_name
 
-    print("URL:", url)
+        print("URL:", url)
 
-    if os.path.isfile('pdfs/' + file_name):
-        print("[INFO]", file_name, "EXISTS on the local file system.\n[INFO] Download not required.")
-    else:
-        print("[INFO] File is NOT present on the local file system.\n[INFO] Starting download.")
-        download_pdf(url, file_name)
+        if os.path.isfile('pdfs/' + file_name):
+            print("[INFO]", file_name, "EXISTS on the local file system.\n[INFO] Download not required.")
+        else:
+            print("[INFO] File is NOT present on the local file system.\n[INFO] Starting download.")
+            download_pdf(url, file_name)
