@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
 import numpy as np
+import os
 import pdfplumber
 import re
 from sqlite3 import Error
 import sqlite3
-
 
 def find_page(pdf2read):
         pages = pdf2read.pages
@@ -19,7 +19,7 @@ def find_page(pdf2read):
         return (-1)
 
 
-def create_list(elements):
+def create_list(elements, current_date):
     #enumerating the list to find the first float after a string
     float_positions = []
     for idx, items in enumerate(elements):
@@ -44,7 +44,7 @@ def create_list(elements):
         L1.insert(1, elements[float_positions[0]])
         L1.insert(2, elements[float_positions[0] + 1])
         L1.insert(3, elements[float_positions[0] + 2])
-        L1.insert(4, ymd("dt"))
+        L1.insert(4, current_date)
 
         #Sorting through the second half of the line and creating a list
         if len(float_positions) == 6:
@@ -59,7 +59,7 @@ def create_list(elements):
             L2.insert(1, elements[float_positions[3]])
             L2.insert(2, elements[float_positions[3] + 1])
             L2.insert(3, elements[float_positions[3] + 2])
-            L2.insert(4, ymd("dt"))
+            L2.insert(4, current_date)
             #Add each list to the List of Lists
             final_list.insert(0, L2)
         final_list.insert(0, L1)
@@ -68,29 +68,28 @@ def create_list(elements):
          return ()
 
 
-def ymd(format_ymd):
-    now = datetime.now() + timedelta(days=-1)
-    year = str(now.year)
+def ymd(fname, format):
 
-    if now.month < 10:
-        month = "0" + str(now.month)
-    else:
-        month = str(now.month)
-    if now.day < 10:
-        day = "0" + str(now.day)
-    else:
-        day = str(now.day)
+    int_position = []
+    array = re.split(r'-|\.', fname)
+    for idx, items in enumerate(array):
+         try :
+             if int(array[idx]):
+                int_position.append(idx)
+         except ValueError:
+             continue
 
-    if format_ymd == "filename":
-        YMD = year + month + day
-        return(YMD)
-    elif format_ymd == "dt":
-        YMD_dt = year + "-" + month + "-" + day
+    YMD_dt = array[idx - 1][0:4] + "-" + array[idx - 1][4:6] + "-" + array[idx -1][6:8]
+
+    if format == "filename":
+        YMD_dt = YMD_dt.replace('-','')
+    elif format == "dt":
         return(YMD_dt)
-    elif format_ymd == "url":
-        YMD_dt = year + "/" + month + "/"
+    elif format == "url":
+        YMD_dt = YMD_dt.replace('-','/')
     else:
-        YMD_dt = year + "\\" + month + "\\" + day
+        YMD_dt = YMD_dt.replace('-','\\')
+    return(YMD_dt)
 
 
 def sql_connection():
@@ -124,77 +123,83 @@ def sql_insert(con):
 
 if __name__ == '__main__':
 
-    YMD = ymd("filename")
-    final_list = []
-
     con = sql_connection()
     sql_table(con)
 
-    with pdfplumber.open('pdfs/covid-gr-daily-report-' + YMD + '.pdf') as pdf:
-        print('[INFO] Opening pdfs/covid-gr-daily-report-' + YMD + '.pdf')
-        print('[INFO] Searching for the Coronavirus table...')
-        page_num = find_page(pdf)
+    path = "./pdfs"
+    files = os.listdir(path)
 
-        if page_num < 0:
-            print("[WARN] Table not found in current pdf document!")
-            pdf.close()
-            exit()
-        else:
-            print("[INFO] Table found on <Page:" + str(page_num + 1) + ">")
+    for f in files:
+        final_list = []
+        cur_dt = ymd(f, "dt")
+        print(ymd(f, "filename"))
 
-        print("[INFO] Extracting text found on <Page:" + str(page_num + 1) + ">")
-        page = pdf.pages[page_num]
-        text = page.extract_text()
+        with pdfplumber.open('pdfs/' + f) as pdf:#'pdfs/covid-gr-daily-report-' + YMD + '.pdf') as pdf:
+            print('[INFO] Opening pdfs/' + f)
+            #print('[INFO] Opening pdfs/covid-gr-daily-report-' + YMD + '.pdf')
+            print('[INFO] Searching for the Coronavirus table...')
+            page_num = find_page(pdf)
 
-        #print(":::::::::::::::::::::::::::::::::::::::::::::::: Extracted Text :::::::::::::::::::::::::::::::::::::::::::::::::")
-        #print(text)
-        #print(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
-
-        # #Testing with numpy arrays#
-        # table = page.extract_table()
-        # print(table)
-        # nplist = np.array([linez.split('\n') for linez in table[2]])
-        # new_nplist = nplist.flatten()
-        # ###########################
-        # print("----------------------------------------------------------------------------------------")
-        # print(new_nplist)
-        # print("----------------------------------------------------------------------------------------")
-        # ###########################
-
-        print("[INFO] Matching text extracted from the table")
-        regex = re.compile(r'(^\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) ?(\d+,?\d+) ?(\d+,?\d+|) ?(\d+,\d+|)')
-
-        for line in re.split('\n', text):
-            if regex.match(line):
-                replaced_line = line.replace(",", ".")
-
-                #Splitting up each line and placing it in an array
-                if (len(line.split()) >= 4) and (len(line.split()) <= 6):
-                    result = re.split(r'(^\w+) (\d+|\w+) (\d+\.?\d+|\w+) ?(\d+\.?\d+) ?(\d+\.?\d+|) ?(\d+\.?\d+|)', replaced_line)
-                else:
-                    result = re.split(r'^(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) (\d+\.\d+|) ?(\d+\.\d+|) ?(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) ?(\d+\.\d+|) ?(\d+\.\d+|) ?',replaced_line)
-
-                #Remove all empty elements from the list
-                clean_list = [elmnt for elmnt in result if elmnt != ""]
-                create_list(clean_list)
+            if page_num < 0:
+                print("[WARN] Table not found in current pdf document!")
+                pdf.close()
+                exit()
             else:
-                print("[WARN] The following line is not a match!")
-                print("[WARN]", line)
-    pdf.close()
+                print("[INFO] Table found on <Page:" + str(page_num + 1) + ">")
 
-    #final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "Cases/100,000 ppl", "Date"])
+            print("[INFO] Extracting text found on <Page:" + str(page_num + 1) + ">")
+            page = pdf.pages[page_num]
+            text = page.extract_text()
 
-    np_array = np.array(final_list)
-    print("===================================== Array of Extracted Data =====================================\n", np_array)#final_list)
-    print("=============================== Number of Regions:", len(final_list), "===============================")
+            #print(":::::::::::::::::::::::::::::::::::::::::::::::: Extracted Text :::::::::::::::::::::::::::::::::::::::::::::::::")
+            #print(text)
+            #print(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
 
-    #Time to insert records into the database!
-    sql_insert(con)
-    #Returns a list based on a regional search string
-    search_item = "ΖΑΚΥΝΘΟΥ"#"ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
-    for sublist in final_list:
-        if sublist[0] == search_item:
-            #print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3], final_list[0][4]))
-            print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format("Region", "Cases", "7 Day Average", "Cases/100,000 ppl", "Date"))
-            print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(sublist[0], sublist[1], sublist[2], sublist[3], sublist[4]))
-            break
+            # #Testing with numpy arrays#
+            # table = page.extract_table()
+            # print(table)
+            # nplist = np.array([linez.split('\n') for linez in table[2]])
+            # new_nplist = nplist.flatten()
+            # ###########################
+            # print("----------------------------------------------------------------------------------------")
+            # print(new_nplist)
+            # print("----------------------------------------------------------------------------------------")
+            # ###########################
+
+            print("[INFO] Matching text extracted from the table")
+            regex = re.compile(r'(^\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) ?(\d+,?\d+) ?(\d+,?\d+|) ?(\d+,\d+|)')
+
+            for line in re.split('\n', text):
+                if regex.match(line):
+                    replaced_line = line.replace(",", ".")
+
+                    #Splitting up each line and placing it in an array
+                    if (len(line.split()) >= 4) and (len(line.split()) <= 6):
+                        result = re.split(r'(^\w+) (\d+|\w+) (\d+\.?\d+|\w+) ?(\d+\.?\d+) ?(\d+\.?\d+|) ?(\d+\.?\d+|)', replaced_line)
+                    else:
+                        result = re.split(r'^(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) (\d+\.\d+|) ?(\d+\.\d+|) ?(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) ?(\d+\.\d+|) ?(\d+\.\d+|) ?',replaced_line)
+
+                    #Remove all empty elements from the list
+                    clean_list = [elmnt for elmnt in result if elmnt != ""]
+                    create_list(clean_list, cur_dt)
+                else:
+                    print("[WARN] The following line is not a match!")
+                    print("[WARN]", line)
+        pdf.close()
+
+        #final_list.insert(0, ["Regional Unit", "Cases", "7 Day Average", "Cases/100,000 ppl", "Date"])
+
+        np_array = np.array(final_list)
+        print("===================================== Array of Extracted Data =====================================\n", np_array)#final_list)
+        print("=============================== Number of Regions:", len(final_list), "===============================")
+
+        #Time to insert records into the database!
+        sql_insert(con)
+        #Returns a list based on a regional search string
+        search_item = "ΖΑΚΥΝΘΟΥ"#"ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
+        for sublist in final_list:
+            if sublist[0] == search_item:
+                #print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3], final_list[0][4]))
+                print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format("Region", "Cases", "7 Day Average", "Cases/100,000 ppl", "Date"))
+                print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(sublist[0], sublist[1], sublist[2], sublist[3], sublist[4]))
+                break
