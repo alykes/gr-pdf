@@ -5,7 +5,6 @@ import urllib.error
 
 
 def download_pdf(url, file_name):
-
     try:
         conn = urllib.request.urlopen(url)
     except urllib.error.HTTPError as err:
@@ -23,6 +22,7 @@ def download_pdf(url, file_name):
 
 if __name__ == '__main__':
 
+    #First publication was 2020-04-02 (380 days)
     history = 31
 
     for x in range(1, history):
