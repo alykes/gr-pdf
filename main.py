@@ -23,7 +23,7 @@ def download_pdf(url, file_name):
 if __name__ == '__main__':
 
     #First publication was 2020-04-02 (380 days)
-    history = 31
+    history = 380
 
     for x in range(1, history):
         now = datetime.now() + timedelta(days = -(x))
@@ -41,7 +41,6 @@ if __name__ == '__main__':
         YMD = year + month + day
 
         file_name = "covid-gr-daily-report-" + YMD + ".pdf"
-        print(file_name)
         url = "https://eody.gov.gr/wp-content/uploads/" + year + "/" + month + "/" + file_name
 
         print("URL:", url)
