@@ -131,8 +131,6 @@ if __name__ == '__main__':
 
     for f in files:
         final_list = []
-        cur_dt = ymd(f, "dt")
-        print(ymd(f, "filename"))
 
         with pdfplumber.open('pdfs/' + f) as pdf:#'pdfs/covid-gr-daily-report-' + YMD + '.pdf') as pdf:
             print('[INFO] Opening pdfs/' + f)
@@ -166,24 +164,32 @@ if __name__ == '__main__':
             # print("----------------------------------------------------------------------------------------")
             # ###########################
 
-            print("[INFO] Matching text extracted from the table")
+            print("[INFO] Regex matching on text extracted from the table")
             regex = re.compile(r'(^\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) ?(\d+,?\d+) ?(\d+,?\d+|) ?(\d+,\d+|)')
 
             for line in re.split('\n', text):
                 if regex.match(line):
                     replaced_line = line.replace(",", ".")
 
+                    found = replaced_line.find('ΥΠΟ ΔΙΕΡΕΥΝΗΣΗ')
+                    if found != -1:
+                        #Need to do something with the unknown cases.
+                        unknown = replaced_line[found:]
+                        print("Cases under investigation:", unknown)
+                        replaced_line = replaced_line[:found]
+
+
                     #Splitting up each line and placing it in an array
-                    if (len(line.split()) >= 4) and (len(line.split()) <= 6):
+                    if (len(replaced_line.split()) >= 4) and (len(replaced_line.split()) <= 6):
                         result = re.split(r'(^\w+) (\d+|\w+) (\d+\.?\d+|\w+) ?(\d+\.?\d+) ?(\d+\.?\d+|) ?(\d+\.?\d+|)', replaced_line)
                     else:
                         result = re.split(r'^(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) (\d+\.\d+|) ?(\d+\.\d+|) ?(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) ?(\d+\.\d+|) ?(\d+\.\d+|) ?',replaced_line)
 
                     #Remove all empty elements from the list
                     clean_list = [elmnt for elmnt in result if elmnt != ""]
-                    create_list(clean_list, cur_dt)
+                    create_list(clean_list, ymd(f, "dt"))
                 else:
-                    print("[WARN] The following line is not a match!")
+                    print("[WARN] The line below does not match.")
                     print("[WARN]", line)
         pdf.close()
 
@@ -195,11 +201,13 @@ if __name__ == '__main__':
 
         #Time to insert records into the database!
         sql_insert(con)
+
         #Returns a list based on a regional search string
-        search_item = "ΖΑΚΥΝΘΟΥ"#"ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
+        search_item = "ΥΠΟ ΔΙΕΡΕΥΝΗΣΗ"#"ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
         for sublist in final_list:
             if sublist[0] == search_item:
                 #print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3], final_list[0][4]))
                 print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format("Region", "Cases", "7 Day Average", "Cases/100,000 ppl", "Date"))
                 print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(sublist[0], sublist[1], sublist[2], sublist[3], sublist[4]))
                 break
+    con.close()
