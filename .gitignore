@@ -131,6 +131,7 @@ dmypy.json
 
 # Downloaded pdf directory
 /pdfs
+/pdfs-all
 
 # sqlite3 database
 gr-covid.db
