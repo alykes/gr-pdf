@@ -6,6 +6,7 @@ import re
 from sqlite3 import Error
 import sqlite3
 
+
 def find_page(pdf2read):
         pages = pdf2read.pages
 
@@ -28,7 +29,6 @@ def create_list(elements, current_date):
                 float_positions.append(idx)
          except ValueError:
              continue
-
     #Sorting through the first half of the line and creating a list
     L1 = []
     L2 = []
@@ -121,6 +121,7 @@ def sql_insert(con):
         print('[ERROR] SQLite3 Insert Records Error: {}'.format(Error))
 
 
+
 if __name__ == '__main__':
 
     con = sql_connection()
@@ -172,16 +173,18 @@ if __name__ == '__main__':
                     replaced_line = line.replace(",", ".")
 
                     found = replaced_line.find('ΥΠΟ ΔΙΕΡΕΥΝΗΣΗ')
-                    if found != -1:
-                        #Need to do something with the unknown cases.
-                        unknown = replaced_line[found:]
-                        print("Cases under investigation:", unknown)
+                    #If the string is not found at the start of the line.
+                    if found > 0:
+                        under_investigation = replaced_line[found:]
                         replaced_line = replaced_line[:found]
-
+                        ui_record = under_investigation.replace("  "," ")
+                        ui_record = ui_record + " 0 0"
+                        ui_record = ui_record.split(' ')
+                        create_list(ui_record, ymd(f, "dt"))
 
                     #Splitting up each line and placing it in an array
                     if (len(replaced_line.split()) >= 4) and (len(replaced_line.split()) <= 6):
-                        result = re.split(r'(^\w+) (\d+|\w+) (\d+\.?\d+|\w+) ?(\d+\.?\d+) ?(\d+\.?\d+|) ?(\d+\.?\d+|)', replaced_line)
+                        result = re.split(r'(^\w+) (\d+|-?\w+) (\d+\.?\d+|\w+) ?(\d+\.?\d+) ?(\d+\.?\d+|) ?(\d+\.?\d+|)', replaced_line)
                     else:
                         result = re.split(r'^(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) (\d+\.\d+|) ?(\d+\.\d+|) ?(\w+) (\d+|-?\w+) (\d+\.?\d{0,2}|\w+) (\d+\.?\d+) ?(\d+\.\d+|) ?(\d+\.\d+|) ?',replaced_line)
 
@@ -203,7 +206,7 @@ if __name__ == '__main__':
         sql_insert(con)
 
         #Returns a list based on a regional search string
-        search_item = "ΥΠΟ ΔΙΕΡΕΥΝΗΣΗ"#"ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
+        search_item = "ΖΑΚΥΝΘΟΥ"#"ΒΟΡΕΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"#"ΛΕΣΒΟΥ"#"ΝΟΤΙΟΥ ΤΟΜΕΑ ΑΘΗΝΩΝ"
         for sublist in final_list:
             if sublist[0] == search_item:
                 #print('{0:25} {1:8} {2:15} {3:18} {4:10}'.format(final_list[0][0], final_list[0][1], final_list[0][2], final_list[0][3], final_list[0][4]))
