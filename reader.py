@@ -99,6 +99,7 @@ def sql_connection():
     except Error:
         print('[ERROR] SQLite3 Connection Error: {}'.format(Error))
 
+
 def sql_table(con):
     try:
         cursorObj = con.cursor()
@@ -149,7 +150,6 @@ if __name__ == '__main__':
             print("[INFO] Extracting text found on <Page:" + str(page_num + 1) + ">")
             page = pdf.pages[page_num]
             text = page.extract_text()
-
             #print(":::::::::::::::::::::::::::::::::::::::::::::::: Extracted Text :::::::::::::::::::::::::::::::::::::::::::::::::")
             #print(text)
             #print(":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::")
@@ -166,18 +166,19 @@ if __name__ == '__main__':
             # ###########################
 
             print("[INFO] Regex matching on text extracted from the table")
-            regex = re.compile(r'(^\w+) (\d+|-?\w+) (\d+,?\d{0,2}|\w+) ?(\d+,?\d+) ?(\d+,?\d+|) ?(\d+,\d+|)')
+            regex = re.compile(r'(^\w+) (\d+|-?\w+) (\d+[,.]?\d{0,2}|\w+) ?(\d+[,.]?\d+) ?(\d+[,.]?\d+|) ?(\d+[,.]\d+|)')
 
             for line in re.split('\n', text):
                 if regex.match(line):
-                    replaced_line = line.replace(",", ".")
+                    #Some pdfs need a bit of a clean up
+                    clean_up = line.replace("  ", " ")
+                    replaced_line = clean_up.replace(",", ".")
 
                     found = replaced_line.find('ΥΠΟ ΔΙΕΡΕΥΝΗΣΗ')
                     #If the string is not found at the start of the line.
                     if found > 0:
-                        under_investigation = replaced_line[found:]
+                        ui_record = replaced_line[found:]
                         replaced_line = replaced_line[:found]
-                        ui_record = under_investigation.replace("  "," ")
                         ui_record = ui_record + " 0 0"
                         ui_record = ui_record.split(' ')
                         create_list(ui_record, ymd(f, "dt"))
