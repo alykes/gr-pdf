@@ -65,6 +65,7 @@ def create_list(elements, current_date):
         final_list.insert(0, L1)
 
     if float_positions == []:
+        print("[INFO] Unable to find float positions")
          return ()
 
 
@@ -88,7 +89,7 @@ def ymd(fname, format):
     elif format == "url":
         YMD_dt = YMD_dt.replace('-','/')
     else:
-        YMD_dt = YMD_dt.replace('-','\\')
+        YMD_dt = YMD_dt.replace('-','\')
     return(YMD_dt)
 
 
