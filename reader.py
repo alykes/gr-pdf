@@ -66,7 +66,7 @@ def create_list(elements, current_date):
 
     if float_positions == []:
         print("[INFO] Unable to find float positions")
-         return ()
+        return()
 
 
 def ymd(fname, format):
@@ -83,13 +83,13 @@ def ymd(fname, format):
     YMD_dt = array[idx - 1][0:4] + "-" + array[idx - 1][4:6] + "-" + array[idx -1][6:8]
 
     if format == "filename":
-        YMD_dt = YMD_dt.replace('-','')
+        YMD_dt = YMD_dt.replace('-', '')
     elif format == "dt":
         return(YMD_dt)
     elif format == "url":
-        YMD_dt = YMD_dt.replace('-','/')
+        YMD_dt = YMD_dt.replace('-', '/')
     else:
-        YMD_dt = YMD_dt.replace('-','\')
+        YMD_dt = YMD_dt.replace('-', '\\')
     return(YMD_dt)
 
 
