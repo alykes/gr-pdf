@@ -23,7 +23,7 @@ def download_pdf(url, file_name):
 if __name__ == '__main__':
 
     #First publication was 2020-04-02 (380 days)
-    history = 380
+    history = 31
 
     for x in range(1, history):
         now = datetime.now() + timedelta(days = -(x))
