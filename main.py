@@ -10,14 +10,17 @@ def download_pdf(url, file_name):
     except urllib.error.HTTPError as err:
     # Return code error (e.g. 404, 501, ...)
         print('[ERROR] HTTPError: {}'.format(err.code))
+
     except urllib.error.URLError as err:
     # Not an HTTP-specific error (e.g. connection refused)
         print('[ERROR] URLError: {}'.format(err.reason))
+
     else:
     # HTTP response 200!
         print("[INFO] Downloading --" + file_name + "--")
         urlretrieve(url, "pdfs/" + file_name)
         print("[INFO] Download of --" + file_name + "-- COMPLETE!")
+
 
 
 if __name__ == '__main__':
