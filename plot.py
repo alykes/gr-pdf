@@ -20,25 +20,41 @@ subset_thess = dataz[dataz['region'] == "ΘΕΣΣΑΛΟΝΙΚΗΣ"]
 print(subset)
 
 
-
 fig = make_subplots(specs=[[{"secondary_y": True}]])
-fig.add_bar(secondary_y=False, x=subset_zante['dt'], y = subset_zante['cases'],
-                marker_color="MediumSlateBlue", name="ΖΑΚΥΝΘΟΥ")
+
+fig.add_bar(
+    secondary_y = False,
+    x = subset_zante['dt'],
+    y = subset_zante['cases'],
+    marker_color = "SkyBlue",
+    name = "ΖΑΚΥΝΘΟΥ")
+
+fig.update_yaxes(
+    secondary_y = False,
+    tickfont_color = "SkyBlue",
+    title = "Cases per Day")
 
 # fig.add_scatter(secondary_y=True,  x=subset_thess['dt'], y = subset_thess['cases'],
 #                 marker_color="DarkOrange", name="ΘΕΣΣΑΛΟΝΙΚΗΣ")
-fig.add_scatter(secondary_y=True,  x=subset_zante['dt'], y = subset_zante['avg7day'],
-                 marker_color="DarkOrange", name="Rolling 7 Day Average")
-
-fig.update_yaxes(secondary_y=False,
-                tickfont_color="MediumSlateBlue", title="Cases")
+fig.add_scatter(
+    secondary_y = True,
+    x=subset_zante['dt'],
+    y = subset_zante['avg7day'],
+    marker_color="RebeccaPurple",
+    name = "7 Day Average")
 
 # fig.update_yaxes(secondary_y=True,
 #                 tickfont_color="DarkOrange", title="Cases")
-fig.update_yaxes(secondary_y=True,
-                 tickfont_color="DarkOrange", title="7 Day Average")
+fig.update_yaxes(
+    secondary_y=True,
+    tickfont_color="RebeccaPurple",
+    title="7 Day Average")
 
-fig.update_layout(title_text="Coronavirus Cases")
+fig.update_yaxes(
+    scaleratio = 1,
+    range=[0,30])
+
+fig.update_layout(title_text="COVID-19 cases in Zakynthos (Greece) from the 1st Jan 2021")
 fig.show()
 
 
