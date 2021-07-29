@@ -52,7 +52,7 @@ fig.update_yaxes(
 
 fig.update_yaxes(
     scaleratio = 1,
-    range=[0,100])
+    range=[0,30])
 
 fig.update_layout(title_text="COVID-19 cases in Zakynthos (Greece) from the 1st Jan 2021")
 fig.show()
