@@ -1,4 +1,4 @@
-@CALL c:\Users\n3w\anaconda3\condabin\conda.bat activate pdf
+@CALL e:\miniconda3\condabin\conda.bat activate pdf
 
 e:
 cd e:\repos\gr-pdf
